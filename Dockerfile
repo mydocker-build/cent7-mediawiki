@@ -4,6 +4,7 @@ MAINTAINER Sam KUON "sam.kuonssp@gmail.com"
 
 ENV MEDIAWIKI_VERSION 1.29
 ENV MEDIAWIKI_FULL_VERSION 1.29.0
+ENV LDAPEXT_VERSION REL1_29-4c9bdab
 
 # System timezone
 ENV TZ=Asia/Phnom_Penh
@@ -33,8 +34,10 @@ RUN yum -y update && \
 
 # Download Mediawiki
 RUN cd /tmp/ && wget https://releases.wikimedia.org/mediawiki/$MEDIAWIKI_VERSION/mediawiki-$MEDIAWIKI_FULL_VERSION.tar.gz && \
+	wget https://extdist.wmflabs.org/dist/extensions/LdapAuthentication-$LDAPEXT_VERSION.tar.gz && \
 	tar xzvf mediawiki-$MEDIAWIKI_FULL_VERSION.tar.gz -C /usr/src/ && \
-	rm -rf /tmp/mediawiki*
+	tar xzvf tar -xzf LdapAuthentication-$LDAPEXT_VERSION.tar.gz -C /usr/src/mediawiki*/extensions/ && \
+	rm -rf /tmp/mediawiki* /tmp/LdapAuthentication-REL*
 
 # Copy run-httpd script to image
 ADD ./conf.d/run-httpd.sh /run-httpd.sh
