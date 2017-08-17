@@ -32,6 +32,9 @@ RUN yum -y update && \
 	wget &&\
     yum clean all
 
+# Set Timzone in PHP
+RUN sed -i '890idate.timezone = "Asia/Phnom_Penh"' /etc/php.ini
+
 # Download Mediawiki
 RUN cd /tmp/ && wget https://releases.wikimedia.org/mediawiki/$MEDIAWIKI_VERSION/mediawiki-$MEDIAWIKI_FULL_VERSION.tar.gz && \
 	wget https://extdist.wmflabs.org/dist/extensions/LdapAuthentication-$LDAPEXT_VERSION.tar.gz && \
