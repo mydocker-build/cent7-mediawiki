@@ -1,0 +1,13 @@
+version: '3'
+services:
+  wiki:
+    image: "cent7-mediawiki:1.29"
+    restart: always
+    container_name: wiki.sca-domain.com
+    hostname: wiki
+    domainname: sca-domain.com
+    network_mode: bridge
+    ports:
+      - 80:80
+    volumes:
+      - /srv/docker_data/wiki.sca-domain.com:/var/www/html

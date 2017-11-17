@@ -39,15 +39,9 @@ RUN sed -i '890idate.timezone = "Asia/Phnom_Penh"' /etc/php.ini
 ## Disable CentOS Welcome Page
 RUN sed -i 's/^\([^#]\)/#\1/g' /etc/httpd/conf.d/welcome.conf
 
-## Disallow browsing outside the document root
-RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.orig && \
-	sed -i '103i\    Options None\n    Order deny,allow\n    Deny from all' /etc/httpd/conf/httpd.conf
-
-## Filter HTTP request methods
-RUN sed -i '135i\    <LimitExcept GET POST HEAD>\n        deny from all\n    </LimitExcept>' /etc/httpd/conf/httpd.conf
-
 ## Turn off directory listing, Disable Apache's FollowSymLinks, Turn off server-side includes (SSI) and CGI execution
-RUN sed -i 's/^\([^#]*\)Options Indexes FollowSymLinks/\1Options -Indexes -FollowSymLinks -ExecCGI -Includes/g' /etc/httpd/conf/httpd.conf
+RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.orig && \
+	sed -i 's/^\([^#]*\)Options Indexes FollowSymLinks/\1Options -Indexes +SymLinksifOwnerMatch -ExecCGI -Includes/g' /etc/httpd/conf/httpd.conf
 
 ## Hide the Apache version, secure from clickjacking attacks, disable ETag, secure from XSS attacks and protect cookies with HTTPOnly flag
 RUN echo $'\n\
@@ -57,15 +51,14 @@ Header append X-FRAME-OPTIONS "SAMEORIGIN"\n\
 FileETag None\n\
 <IfModule mod_headers.c>\n\
     Header set X-XSS-Protection "1; mode=block"\n\
-</IfModule>\n\
-<IfModule mod_headers.c>\n\
-    Header edit Set-Cookie ^(.*)$ $1;HttpOnly;Secure\n\
 </IfModule>\n'\
 >> /etc/httpd/conf/httpd.conf
 
 # Disable unnecessary modules in /etc/httpd/conf.modules.d/00-base.conf
 RUN cp /etc/httpd/conf.modules.d/00-base.conf /etc/httpd/conf.modules.d/00-base.conf.bak && \
-	sed -i '/mod_info.so/ s/^/#/' /etc/httpd/conf.modules.d/00-base.conf && \
+	sed -i '/mod_cache.so/ s/^/#/' /etc/httpd/conf.modules.d/00-base.conf && \
+	sed -i '/mod_cache_disk.so/ s/^/#/' /etc/httpd/conf.modules.d/00-base.conf && \
+	sed -i '/mod_substitute.so/ s/^/#/' /etc/httpd/conf.modules.d/00-base.conf && \
 	sed -i '/mod_userdir.so/ s/^/#/' /etc/httpd/conf.modules.d/00-base.conf
 
 # Disable everything in /etc/httpd/conf.modules.d/00-dav.conf, 00-lua.conf, 00-proxy.conf and 01-cgi.conf
@@ -83,6 +76,7 @@ RUN cd /tmp/ && wget https://releases.wikimedia.org/mediawiki/$MEDIAWIKI_VERSION
 
 # Copy run-httpd script to image
 ADD ./conf.d/run-httpd.sh /run-httpd.sh
+ADD ./conf.d/apache_state.conf /etc/httpd/conf.d/apache_state.conf
 RUN chmod -v +x /run-httpd.sh
 
 EXPOSE 80 443
