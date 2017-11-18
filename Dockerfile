@@ -33,7 +33,7 @@ RUN yum -y update && \
     yum clean all
 
 # Set Timzone in PHP
-RUN sed -i '890idate.timezone = "Asia/Phnom_Penh"' /etc/php.ini
+RUN sed -i "s/^;date.timezone =$/date.timezone = \"Asia\/Phnom_Penh\"/" /etc/php.ini
 
 # Secure Apache server
 ## Disable CentOS Welcome Page
